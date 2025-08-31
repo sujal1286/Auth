@@ -14,11 +14,11 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:true,
     },
-    vefityOtp :{ 
+    verifyOtp :{ 
         type:String,
         default:'',
     },
-    vefityOtpExpireAt :{ 
+    verifyOtpExpireAt :{ 
         type:Number,
         default:0,
     },

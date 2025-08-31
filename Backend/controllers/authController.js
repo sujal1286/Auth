@@ -6,51 +6,44 @@ import transporter from "../config/nodemailer.js";
 
 
 export const register = async (req, res) => {
-
-     const {name , email , password} = req.body;
-    
-     if(!name || !email || !password){
-        return res.status(400).json({message: "All fields are required"});
-     }
-     try {
-
-        const existingUser = await userModel.findOne({email});
-
-        if(existingUser){
-            return res.status(400).json({message: "User already exists"});
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+    }
+    try {
+        const existingUser = await userModel.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "User already exists" });
         }
-
         const hashPassword = await bcrypt.hash(password, 10);
-        const user = new userModel({name, email, password: hashPassword});
-        await user.save();
-
-        const token = jwt.sign({id: user._id}, process.env.JWT_SECRET, {expiresIn: "1d"});
-
-        
-
-        res.cookie('token', token,{
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict' ,maxAge: 1 * 24 * 60 * 60 * 1000
+        // Generate OTP
+        const otp = String(Math.floor(100000 + Math.random() * 900000));
+        // OTP valid for 24 hours
+        const otpExpireAt = Date.now() + 24 * 60 * 60 * 1000;
+        const user = new userModel({
+            name,
+            email,
+            password: hashPassword,
+            verifyOtp: otp,
+            verifyOtpExpireAt: otpExpireAt,
+            isAccountVerified: false
         });
-
-        //sending welcome mail
+        await user.save();
+        // Send OTP email
         const mailOptions = {
             from: process.env.SENDER_EMAIL,
             to: email,
-            subject: 'Welcome to Our Auth Platform',
-            text: `Hello , ${name} , Your email ${email} successfully registered. Thank you for registering with us!`
-        }
+            subject: 'Verify Your Email',
+            text: `Your verification OTP is ${otp}`
+        };
         await transporter.sendMail(mailOptions);
-        
-
-        return res.status(201).json({message: "User registered successfully"});
-
-
-
+        return res.status(201).json({
+            message: "OTP sent to email. Please verify to complete registration.",
+            userId: user._id
+        });
     } catch (error) {
-        res.json({message: error.message});
-     }
+        res.status(500).json({ message: error.message });
+    }
 }
 
 
@@ -106,69 +99,44 @@ export const logout = async (req, res) => {
 }
 
 // send verification OTP to the user's email 
-export const sendVerifyOtp = async (req, res) => {
-    try {
-        const {userId} = req.body;
-        const user = await userModel.findById(userId);
-        if(user.isAccountVerified){
-            return res.status(400).json({message: "Account already verified"});
-        }
-
-        // Generate OTP
-        const otp = String(Math.floor(100000 + Math.random() * 900000));
-        user.verifyOtp = otp;
-// OTP valid for 24 hours
-        user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000; 
-        await user.save();
-
-        // Send OTP email
-        const mailOptions = {
-            from: process.env.SENDER_EMAIL,
-            to: user.email,
-            subject: 'Verify Your Email',
-            text: `Your verification OTP is ${otp}`
-        };
-        await transporter.sendMail(mailOptions);
-
-        return res.status(200).json({message: "OTP sent to email"});
-    } catch (error) {
-        return res.status(500).json({message: error.message});
-    }
-}
+// sendVerifyOtp can be kept for other flows (like re-sending OTP), but not needed for registration anymore
 
 
 export const verifyEmail = async (req, res) => {
     const { userId, otp } = req.body;
-
     if (!userId || !otp) {
         return res.status(400).json({ message: "All fields are required" });
     }
-
     try {
         const user = await userModel.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-
+        if (user.isAccountVerified) {
+            return res.status(400).json({ message: "Account already verified" });
+        }
         if (user.verifyOtp === '') {
             return res.status(401).json({ message: "No OTP found. Please request a new OTP" });
         }
-
         if (Date.now() > user.verifyOtpExpireAt) {
             return res.status(401).json({ message: "OTP expired" });
         }
-
-        // Convert both OTPs to string for consistent comparison
         if (String(user.verifyOtp) !== String(otp)) {
             return res.status(401).json({ message: "Invalid OTP" });
         }
-
         user.isAccountVerified = true;
         user.verifyOtp = '';
-        user.verifyOtpExpireAt = 0                         ;
+        user.verifyOtpExpireAt = 0;
         await user.save();
-
-        return res.status(200).json({ message: "Email verified successfully" });
+        // Optionally, send welcome email here
+        const mailOptions = {
+            from: process.env.SENDER_EMAIL,
+            to: user.email,
+            subject: 'Welcome to Our Auth Platform',
+            text: `Hello, ${user.name}, your email ${user.email} has been successfully registered. Thank you for registering with us!`
+        };
+        await transporter.sendMail(mailOptions);
+        return res.status(200).json({ message: "User registered successfully" });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
