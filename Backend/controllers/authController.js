@@ -36,7 +36,13 @@ export const register = async (req, res) => {
             subject: 'Verify Your Email',
             text: `Your verification OTP is ${otp}`
         };
-        await transporter.sendMail(mailOptions);
+        // For development: log OTP so it can be used without SMTP
+        console.log(`Register OTP for ${email}: ${otp}`);
+        try {
+            await transporter.sendMail(mailOptions);
+        } catch (err) {
+            console.warn('Warning: sending email failed (dev environment?)', err.message || err);
+        }
         return res.status(201).json({
             message: "OTP sent to email. Please verify to complete registration.",
             userId: user._id
@@ -171,7 +177,12 @@ export const sendResetOtp = async (req, res) =>{
             subject: 'Reset Your Password',
             text: `Your OTP for password reset is ${otp}`
         };
-        await transporter.sendMail(mailOptions);
+        console.log(`Reset OTP for ${user.email}: ${otp}`);
+        try {
+            await transporter.sendMail(mailOptions);
+        } catch (err) {
+            console.warn('Warning: sending reset email failed (dev environment?)', err.message || err);
+        }
         return res.status(200).json({ message: "OTP sent to email" });
     } catch (error) {
         return res.status(500).json({ message: error.message });

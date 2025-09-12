@@ -4,3 +4,106 @@
 * {
   font-family: "Roboto", sans-serif;
 }
+
+/* Button press animation: subtle scale on active/click */
+.btn-press {
+  transition: transform 120ms cubic-bezier(.2,.8,.2,1), box-shadow 120ms;
+}
+.btn-press:active {
+  transform: scale(0.97);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) inset;
+}
+
+/* Utility class for smooth focus outlines */
+.focus-ring:focus {
+  outline: 2px solid rgba(99,102,241,0.25);
+  outline-offset: 2px;
+}
+
+
+
+/* Utility to apply variables */
+body, .app-root {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Buttons leveraging theme primary */
+.btn-primary {
+  background: linear-gradient(to right, var(--primary), var(--accent));
+}
+
+/* Themed UI helpers */
+.themed-nav {
+  background: transparent;
+  color: var(--text);
+}
+
+.themed-card {
+  background: var(--card);
+  color: var(--text);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px rgba(2,6,23,0.06);
+}
+
+.themed-input {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--text);
+}
+
+.avatar-circle {
+  width: 36px; height: 36px; border-radius: 9999px; display:flex; align-items:center; justify-content:center; font-weight:700;
+  background: var(--card); color: var(--text); border: 2px solid rgba(0,0,0,0.08);
+}
+
+/* Frosted auth UI (matches provided image) */
+.auth-bg {
+  background: linear-gradient(180deg, #cfe9ff 0%, #e6c6ff 100%);
+  background-attachment: fixed;
+}
+
+.auth-card {
+  width: 420px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 44px 44px 48px 44px;
+  box-shadow: 0 20px 60px rgba(99,102,241,0.08);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.input-field {
+  display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 9999px;
+  background: rgba(255,255,255,0.12); color: rgba(0,0,0,0.88); border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 6px 18px rgba(16,24,40,0.04);
+  min-height: 52px;
+}
+
+/* input placeholder subtle color */
+.input-field input::placeholder { color: rgba(0,0,0,0.45); }
+
+.input-field img { opacity: 0.65; width: 18px; height: 18px }
+.input-field input { color: rgba(0,0,0,0.92); font-size: 15px }
+
+/* ensure themed-input uses same visible styles */
+.themed-input {
+  display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 9999px;
+  background: rgba(255,255,255,0.12); color: rgba(0,0,0,0.88); border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 6px 18px rgba(16,24,40,0.04);
+  min-height: 52px;
+}
+.themed-input input::placeholder { color: rgba(0,0,0,0.45); }
+.themed-input img { opacity: 0.65; width: 18px; height: 18px }
+.themed-input input { color: rgba(0,0,0,0.92); font-size: 15px }
+
+.primary-btn {
+  display: inline-block; width: 100%; text-align:center; padding: 12px 18px; border-radius: 9999px;
+  background: linear-gradient(90deg,#5563f7 0%, #5b37b3 100%); color: #fff; font-weight:600;
+  box-shadow: 0 12px 30px rgba(91,55,179,0.14);
+}
+
+.auth-subtle { color: rgba(0,0,0,0.45); }
+
+.logo-left { position: absolute; left: 40px; top: 24px; }
